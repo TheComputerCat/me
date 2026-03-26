@@ -1,0 +1,152 @@
+{% import "macros.html" as macros %}
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="{{ config.description }}">
+  <title>{% block title %}{{ config.title }}{% endblock %}</title>
+  <link rel="stylesheet" href="{{ get_url(path='style.css') }}">
+</head>
+<body>
+<div id="wrapper">
+
+  <div id="header">
+    <div id="header-top">
+      <div>
+        <span id="site-title">
+          <a href="{{ macros::section_url(lang=lang, path='') }}">{{ config.title }}</a>
+        </span>
+        <span id="site-subtitle"></span>
+      </div>
+      <div id="header-right">
+        <button id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode"></button>
+        <div id="langbar">
+          {% set es_url = get_url(path='@/_index.md') %}
+          {% set en_url = get_url(path='@/_index.en.md') %}
+          {% set fr_url = get_url(path='@/_index.fr.md') %}
+
+          {% if page is defined %}
+            {% set _translations = page.translations %}
+            {% set _permalink = page.permalink %}
+          {% elif section is defined %}
+            {% set _translations = section.translations %}
+            {% set _permalink = section.permalink %}
+          {% endif %}
+
+          {% if _translations is defined %}
+            {% set _t = _translations | filter(attribute="lang", value="es") | first %}
+            {% if _t %}{% set_global es_url = _t.permalink %}{% elif lang == "es" %}{% set_global es_url = _permalink %}{% endif %}
+            {% set _t = _translations | filter(attribute="lang", value="en") | first %}
+            {% if _t %}{% set_global en_url = _t.permalink %}{% elif lang == "en" %}{% set_global en_url = _permalink %}{% endif %}
+            {% set _t = _translations | filter(attribute="lang", value="fr") | first %}
+            {% if _t %}{% set_global fr_url = _t.permalink %}{% elif lang == "fr" %}{% set_global fr_url = _permalink %}{% endif %}
+          {% endif %}
+
+          <a href="{{ es_url }}" hreflang="es"{% if lang == "es" %} class="active" aria-current="page"{% endif %}>ES</a>
+          <a href="{{ en_url }}" hreflang="en"{% if lang == "en" %} class="active" aria-current="page"{% endif %}>EN</a>
+          <a href="{{ fr_url }}" hreflang="fr"{% if lang == "fr" %} class="active" aria-current="page"{% endif %}>FR</a>
+        </div>
+      </div>
+    </div>
+    <nav id="menubar">
+      <span class="menuitem">
+        <a href="{{ macros::section_url(lang=lang, path='') }}">{{ trans(key="home", lang=lang) }}</a>
+      </span>
+      <span class="menuitem">
+        <a href="{{ macros::section_url(lang=lang, path='blog/') }}">{{ trans(key="blog", lang=lang) }}</a>
+      </span>
+      <span class="menuitem">
+        <a href="{{ macros::section_url(lang=lang, path='projects/') }}">{{ trans(key="projects", lang=lang) }}</a>
+      </span>
+    </nav>
+  </div>
+
+  {% block body %}{% endblock %}
+
+  <div id="footer">
+    &copy; {{ config.extra.start_year }} {{ config.extra.author }}. {{ trans(key="all_rights", lang=lang) }}
+    &nbsp;·&nbsp;
+    <a href="https://creativecommons.org/licenses/by-sa/4.0/">{{ trans(key="license_text", lang=lang) }}</a>
+  </div>
+
+</div>
+<script>
+  (function() {
+    var subtitles = [
+{% if lang == "es" %}
+      "medio programador, medio estadístico, <em>puro azar</em>",
+      "escribe código. lee datos. <em>de pronto</em>",
+      "<em>casi seguro</em> programando",
+      "código y modelos, <em>más o menos</em>",
+      "programador. estadístico. <em>probablemente</em>",
+      "programador <em>estocástico</em>",
+      "programador, <em>estadísticamente hablando</em>",
+      "programador y pensador <em>estocástico</em>",
+      "programador y estadístico <em>i.i.d.</em>",
+      "un programador <em>random</em>",
+      "escribiendo código que <em>de pronto</em> funciona",
+      "minimizando el <em>error</em>... de mi código",
+      "<em>en promedio</em>, programando",
+      "un programador <em>promedio</em>"
+{% elif lang == "fr" %}
+      "mi-programmeur, mi-statisticien, <em>tout aléatoire</em>",
+      "code. analyse des données. <em>probablement</em>",
+      "en train de coder, <em>presque sûrement</em>",
+      "code et modèles, <em>avec une marge d'erreur</em>",
+      "programmeur. statisticien. <em>à peu près</em>",
+      "programmeur <em>stochastique</em>",
+      "programmeur, <em>statistiquement parlant</em>",
+      "programmeur et penseur <em>stochastique</em>",
+      "programmeur et statisticien <em>i.i.d.</em>",
+      "juste un programmeur <em>quelconque</em>",
+      "du code qui marche, <em>en théorie</em>",
+      "en train de minimiser l'<em>erreur</em>... de mon code",
+      "<em>en moyenne</em>, à coder",
+      "un programmeur <em>moyen</em>"
+{% else %}
+      "part programmer, part statistician, <em>all random</em>",
+      "writes code. reads data. <em>probably</em>",
+      "<em>almost surely</em> coding",
+      "codes & models, <em>with some error</em>",
+      "programmer. statistician. <em>probably</em>",
+      "<em>stochastic</em> programmer",
+      "programmer, <em>statistically speaking</em>",
+      "programmer & <em>stochastic</em> thinker",
+      "<em>i.i.d.</em> programmer & statistician",
+      "just a <em>random</em> programmer",
+      "writing code that <em>probably</em> works",
+      "minimizing the <em>error</em>... of my code",
+      "<em>on average</em>, coding",
+      "an <em>average</em> programmer"
+{% endif %}
+    ];
+    var el = document.getElementById('site-subtitle');
+    if (el) el.innerHTML = subtitles[Math.floor(Math.random() * subtitles.length)];
+  })();
+
+  function effectiveTheme() {
+    return localStorage.getItem('theme') ||
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  }
+  function applyTheme(stored) {
+    if (stored) {
+      document.documentElement.setAttribute('data-theme', stored);
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+    var btn = document.getElementById('theme-toggle');
+    if (btn) { btn.textContent = effectiveTheme() === 'dark' ? '☀️' : '🌙'; btn.setAttribute('aria-label', effectiveTheme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'); }
+  }
+  function toggleTheme() {
+    var next = effectiveTheme() === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('theme', next);
+    applyTheme(next);
+  }
+  applyTheme(localStorage.getItem('theme'));
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+    if (!localStorage.getItem('theme')) applyTheme(null);
+  });
+</script>
+</body>
+</html>

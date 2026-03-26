@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page.title }} — {{ config.title }}{% endblock %}
+
+{% block body %}
+<div id="content-wrapper">
+  <div id="main">
+    <article>
+
+      <h1 class="post-title">{{ page.title }}</h1>
+
+      <div class="post-meta">
+        {% if page.date %}
+          <span class="post-date">{{ trans(key="posted_on", lang=lang) }} {{ page.date | date(format="%Y-%m-%d") }}</span>
+        {% endif %}
+        {% if page.taxonomies.tags %}
+          <span class="post-tags" aria-label="Tags">
+            {% for tag in page.taxonomies.tags %}
+              <a href="{{ get_taxonomy_url(kind="tags", name=tag, lang=lang) }}">#{{ tag }}</a>
+            {% endfor %}
+          </span>
+        {% endif %}
+      </div>
+
+      <div class="post-content">
+        {{ page.content | safe }}
+      </div>
+
+      <div class="post-back">
+        <a href="{{ macros::section_url(lang=lang, path='blog/') }}">{{ trans(key="back", lang=lang) }}</a>
+      </div>
+
+    </article>
+  </div>
+</div>
+{% endblock %}

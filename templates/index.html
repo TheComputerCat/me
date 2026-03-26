@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div id="content-wrapper">
+
+  <div id="main">
+    <div class="text">
+      {{ section.content | safe }}
+    </div>
+  </div>
+
+  <ul id="sidebar">
+    <li class="widget">
+      <h3>{{ trans(key="links", lang=lang) }}</h3>
+      <ul>
+        <li><a href="{{ config.extra.github }}">GitHub</a></li>
+        <li><a href="{{ config.extra.linkedin }}">LinkedIn</a></li>
+      </ul>
+    </li>
+    <li class="widget">
+      <h3>{{ trans(key="about", lang=lang) }}</h3>
+      <ul>
+        <li>
+          <a href="mailto:{{ config.extra.email_contact }}">{{ config.extra.email_contact }}</a>
+          <div class="pgp">PGP: {{ config.extra.pgp_contact }}</div>
+        </li>
+        <li>
+          <a href="mailto:{{ config.extra.email_unal }}">{{ config.extra.email_unal }}</a>
+          <div class="pgp">PGP: {{ config.extra.pgp_unal }}</div>
+        </li>
+      </ul>
+    </li>
+  </ul>
+
+</div>
+{% endblock %}

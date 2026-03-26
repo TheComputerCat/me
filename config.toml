@@ -1,0 +1,85 @@
+base_url = "https://juansanchezo.co"
+title = "Juan Sánchez"
+description = "Programador y estadístico."
+default_language = "es"
+compile_sass = true
+build_search_index = false
+generate_feeds = true
+
+[[taxonomies]]
+name = "tags"
+
+[markdown]
+highlight_code = true
+highlight_theme = "base16-ocean-dark"
+
+[extra]
+author = "Juan Sánchez"
+start_year = 2026
+github = "https://github.com/TheComputerCat"
+linkedin = "https://www.linkedin.com/in/juan-sanchezo"
+email_unal = "jusanchez@unal.edu.co"
+email_contact = "contact@juansanchezo.co"
+pgp_unal = "B73E 1BFE D341 02CF CA52 A93E E6FD 6A12 EC13 B48B"
+pgp_contact = "6BB8 B92F 457B 3717 5E8A B995 DE3C C4C3 955F 8C80"
+
+[languages.en]
+title = "Juan Sánchez"
+description = "Programmer and statistician."
+generate_feeds = true
+
+[[languages.en.taxonomies]]
+name = "tags"
+
+[languages.fr]
+title = "Juan Sánchez"
+description = "Programmeur et statisticien."
+generate_feeds = true
+
+[[languages.fr.taxonomies]]
+name = "tags"
+
+[translations]
+home      = "Inicio"
+blog      = "Blog"
+projects  = "Proyectos"
+tags      = "Etiquetas"
+about     = "Sobre mí"
+links     = "Enlaces"
+source       = "Código fuente"
+all_rights   = "Todos los derechos reservados."
+license_text = "Este sitio se ofrece bajo la licencia CC BY-SA 4.0."
+read_more = "Leer más"
+posted_on = "Publicado el"
+no_posts  = "No hay entradas aún."
+back      = "← Volver al blog"
+
+[languages.en.translations]
+home      = "Home"
+blog      = "Blog"
+projects  = "Projects"
+tags      = "Tags"
+about     = "About me"
+links     = "Links"
+source       = "Source code"
+all_rights   = "All Rights Reserved."
+license_text = "This website is provided under the CC BY-SA 4.0 license."
+read_more = "Read more"
+posted_on = "Posted on"
+no_posts  = "No posts yet."
+back      = "← Back to blog"
+
+[languages.fr.translations]
+home      = "Accueil"
+blog      = "Blog"
+projects  = "Projets"
+tags      = "Étiquettes"
+about     = "À propos"
+links     = "Liens"
+source       = "Code source"
+all_rights   = "Tous droits réservés."
+license_text = "Ce site est fourni sous la licence CC BY-SA 4.0."
+read_more = "Lire la suite"
+posted_on = "Publié le"
+no_posts  = "Aucun article pour l'instant."
+back      = "← Retour au blog"
