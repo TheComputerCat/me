@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>100 Phrasal Verbs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f7f5;
+      --surface: #ffffff;
+      --border: #e5e5e2;
+      --text: #1a1a18;
+      --muted: #888884;
+      --green-bg: #f0faf4;
+      --green-border: #b8dfc8;
+      --green-text: #2d7a50;
+      --red-bg: #fdf2f2;
+      --red-border: #e8c0c0;
+      --red-text: #b94040;
+      --amber-bg: #fdf8ee;
+      --amber-border: #e8d8a0;
+      --amber-text: #8a6820;
+      --blue-bg: #f0f4ff;
+      --blue-border: #c0cff0;
+      --blue-text: #3a52a0;
+      --radius: 12px;
+      --radius-pill: 999px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px 16px 48px;
+    }
+
+    .container { max-width: 640px; margin: 0 auto; }
+
+    /* Toast */
+    #toast {
+      position: fixed; top: 20px; left: 50%;
+      transform: translateX(-50%) translateY(-8px);
+      background: var(--text); color: #fff;
+      font-size: 13px; padding: 8px 18px;
+      border-radius: var(--radius-pill);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s, transform 0.2s;
+      z-index: 100; white-space: nowrap;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* Header */
+    .header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+    h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
+    .subtitle { font-size: 13px; color: var(--muted); margin-top: 3px; }
+    #autosave-label { font-size: 12px; color: var(--green-text); font-weight: 500; margin-top: 4px; opacity: 0; transition: opacity 0.2s; }
+    #autosave-label.show { opacity: 1; }
+
+    /* Stats */
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+    .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; text-align: center; }
+    .stat.green { background: var(--green-bg); border-color: var(--green-border); }
+    .stat.red   { background: var(--red-bg);   border-color: var(--red-border); }
+    .stat-num { font-size: 24px; font-weight: 600; font-family: 'DM Mono', monospace; line-height: 1; }
+    .stat.green .stat-num { color: var(--green-text); }
+    .stat.red   .stat-num { color: var(--red-text); }
+    .stat-label { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .stat.green .stat-label { color: var(--green-text); opacity: 0.8; }
+    .stat.red   .stat-label { color: var(--red-text);   opacity: 0.8; }
+
+    /* Buttons */
+    .btn-row { display: flex; gap: 8px; margin-bottom: 16px; }
+    .btn { flex: 1; padding: 9px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); cursor: pointer; transition: border-color 0.15s; }
+    .btn:hover { border-color: #aaa; }
+
+    /* Filters */
+    .filter-group { margin-bottom: 10px; }
+    .filter-label { font-size: 11px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .filter-group:last-of-type { margin-bottom: 16px; }
+    .chip { padding: 5px 12px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; border: 1px solid var(--border); border-radius: var(--radius-pill); background: var(--surface); color: #555; cursor: pointer; transition: all 0.15s; text-transform: capitalize; }
+    .chip:hover { border-color: #999; color: var(--text); }
+    .chip.active { background: var(--text); color: #fff; border-color: var(--text); }
+
+    /* Cards */
+    .verb-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .verb-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: border-color 0.15s, background 0.15s; }
+    .verb-card.known   { background: var(--green-bg); border-color: var(--green-border); }
+    .verb-card.unknown { background: var(--red-bg);   border-color: var(--red-border); }
+
+    .card-top { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; cursor: pointer; user-select: none; }
+
+    .verb-info { flex: 1; min-width: 0; }
+    .verb-name { font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .badge { font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: var(--radius-pill); border: 1px solid; }
+    .badge.obvious   { background: var(--green-bg); border-color: var(--green-border); color: var(--green-text); }
+    .badge.moderate  { background: var(--amber-bg); border-color: var(--amber-border); color: var(--amber-text); }
+    .badge.idiomatic { background: var(--red-bg);   border-color: var(--red-border);   color: var(--red-text); }
+    .verb-meaning { font-size: 13px; color: var(--muted); margin-top: 3px; }
+
+    .card-right { display: flex; align-items: center; gap: 8px; margin-left: 12px; flex-shrink: 0; }
+    .action-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); background: transparent; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; color: #bbb; }
+    .action-btn:hover.check  { border-color: var(--green-border); color: var(--green-text); }
+    .action-btn:hover.cross  { border-color: var(--red-border);   color: var(--red-text); }
+    .action-btn.check.active { background: var(--green-text); border-color: var(--green-text); color: #fff; }
+    .action-btn.cross.active { background: var(--red-text);   border-color: var(--red-text);   color: #fff; }
+
+    .expand-btn { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border); background: transparent; cursor: pointer; font-size: 11px; color: var(--muted); display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; }
+    .expand-btn.open { background: var(--text); border-color: var(--text); color: #fff; transform: rotate(180deg); }
+
+    /* Expandable detail */
+    .card-detail {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .card-detail.open { max-height: 400px; }
+
+    .detail-inner {
+      border-top: 1px solid var(--border);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Separability */
+    .sep-row { display: flex; align-items: flex-start; gap: 8px; }
+    .sep-badge { font-size: 10px; font-weight: 600; padding: 3px 9px; border-radius: var(--radius-pill); border: 1px solid; white-space: nowrap; flex-shrink: 0; margin-top: 1px; }
+    .sep-badge.separable     { background: var(--blue-bg); border-color: var(--blue-border); color: var(--blue-text); }
+    .sep-badge.inseparable   { background: var(--amber-bg); border-color: var(--amber-border); color: var(--amber-text); }
+    .sep-badge.na            { background: #f4f4f4; border-color: #ddd; color: #888; }
+    .sep-note { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+    /* Examples */
+    .examples-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .example { font-size: 13px; color: var(--text); line-height: 1.5; padding: 8px 10px; background: rgba(0,0,0,0.03); border-radius: 8px; margin-bottom: 6px; }
+    .example:last-child { margin-bottom: 0; }
+    .example em { font-style: italic; color: var(--muted); font-size: 12px; display: block; margin-top: 2px; }
+
+    .empty { text-align: center; color: var(--muted); font-size: 14px; padding: 40px 0; }
+    .footer { text-align: center; font-size: 11px; color: var(--muted); margin-top: 24px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div id="toast"></div>
+
+  <div class="header">
+    <div>
+      <h1>100 Phrasal Verbs</h1>
+      <p class="subtitle">Tap a card to see examples and usage rules.</p>
+    </div>
+    <div id="autosave-label">Saved ✓</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num" id="stat-total">100</div>
+      <div class="stat-label">Total</div>
+    </div>
+    <div class="stat green">
+      <div class="stat-num" id="stat-known">0</div>
+      <div class="stat-label">I know these</div>
+    </div>
+    <div class="stat red">
+      <div class="stat-num" id="stat-unknown">0</div>
+      <div class="stat-label">To learn</div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn" onclick="exportJSON()">↓ Export JSON</button>
+    <button class="btn" onclick="document.getElementById('file-input').click()">↑ Import JSON</button>
+    <input type="file" id="file-input" accept=".json" style="display:none" onchange="importJSON(event)" />
+  </div>
+
+  <div class="filter-group">
+    <div class="filter-label">Base verb</div>
+    <div class="chips" id="base-filters"></div>
+  </div>
+  <div class="filter-group">
+    <div class="filter-label">Difficulty</div>
+    <div class="chips" id="diff-filters"></div>
+  </div>
+  <div class="filter-group">
+    <div class="filter-label">Status</div>
+    <div class="chips" id="status-filters"></div>
+  </div>
+
+  <div class="verb-list" id="verb-list"></div>
+  <p class="footer">Progress is saved automatically in your browser.</p>
+</div>
+
+<script>
+const STORAGE_KEY = "phrasal-verbs-progress";
+
+// separable: true = separable, false = inseparable, null = N/A (3-part verbs always inseparable)
+// sepNote: short explanation
+const phrasalVerbs = [
+  { verb:"get up",        meaning:"to rise from bed",                         base:"get",    difficulty:"obvious",   separable:false, sepNote:"Can't split: say 'get up early', not 'get early up'.",                             examples:["I get up at 7 every morning.", "She got up and left the room."] },
+  { verb:"get out",       meaning:"to leave a place",                         base:"get",    difficulty:"obvious",   separable:false, sepNote:"Inseparable. 'Get out of here' not 'get here out'.",                               examples:["Get out of my office!", "We need to get out before it rains."] },
+  { verb:"get over",      meaning:"to recover from something",                base:"get",    difficulty:"moderate",  separable:false, sepNote:"Inseparable. Always 'get over something', never 'get something over' (in this meaning).", examples:["It took me months to get over the breakup.", "Have you gotten over your cold yet?"] },
+  { verb:"get along",     meaning:"to have a good relationship",              base:"get",    difficulty:"moderate",  separable:false, sepNote:"Inseparable. 'Get along with someone', no object splits it.",                      examples:["She gets along well with her coworkers.", "Do you and your sister get along?"] },
+  { verb:"get away",      meaning:"to escape",                                base:"get",    difficulty:"obvious",   separable:false, sepNote:"Inseparable. The object follows the particle.",                                    examples:["The thief got away before the police arrived.", "We finally got away for the weekend."] },
+  { verb:"get away with", meaning:"to avoid punishment",                      base:"get",    difficulty:"idiomatic", separable:null,  sepNote:"3-part verb — always inseparable. Object always goes at the end.",                  examples:["He got away with cheating on the test.", "You can't get away with lying forever."] },
+  { verb:"get back",      meaning:"to return / to recover something",         base:"get",    difficulty:"obvious",   separable:true,  sepNote:"Separable. 'Get it back' or 'get back something' both work.",                     examples:["I want to get my money back.", "When are you getting back from vacation?"] },
+  { verb:"get into",      meaning:"to enter / to become interested in",       base:"get",    difficulty:"moderate",  separable:false, sepNote:"Inseparable. 'Get into something', object never splits.",                         examples:["She got into Harvard last year.", "I've really gotten into jazz lately."] },
+  { verb:"get off",       meaning:"to exit a vehicle",                        base:"get",    difficulty:"moderate",  separable:false, sepNote:"Inseparable when meaning 'exit'. 'Get off the bus', not 'get the bus off'.",      examples:["Get off the train at the next stop.", "He got off work early today."] },
+  { verb:"get on",        meaning:"to board / to get along with someone",     base:"get",    difficulty:"moderate",  separable:false, sepNote:"Inseparable. 'Get on the plane', 'get on with someone'.",                         examples:["We need to get on the bus.", "I get on well with my neighbors."] },
+
+  { verb:"take off",      meaning:"to leave the ground / to remove clothing", base:"take",   difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Take off your shoes' = 'Take your shoes off'. Pronoun must go in middle.", examples:["The plane takes off at noon.", "Take off your jacket — it's warm in here."] },
+  { verb:"take out",      meaning:"to remove / to invite on a date",          base:"take",   difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Take out the trash' = 'Take the trash out'.",                         examples:["Can you take out the garbage?", "He took her out for dinner last Friday."] },
+  { verb:"take over",     meaning:"to assume control",                        base:"take",   difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Take over the company' or 'take the company over'.",                  examples:["A larger firm took over the startup.", "She took over the project when he quit."] },
+  { verb:"take back",     meaning:"to retract / to return something",         base:"take",   difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Take back what you said' or 'take it back'.",                        examples:["I take back everything I said.", "Can I take this shirt back? It doesn't fit."] },
+  { verb:"take on",       meaning:"to accept responsibility",                 base:"take",   difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Take on a challenge' or 'take a challenge on'.",                     examples:["Don't take on more work than you can handle.", "The company took on 20 new employees."] },
+  { verb:"take up",       meaning:"to start a hobby / to occupy space",       base:"take",   difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Take up painting' or 'take painting up'. Pronoun goes in middle.",   examples:["She took up yoga during lockdown.", "This table takes up too much space."] },
+  { verb:"take in",       meaning:"to absorb information / to deceive",       base:"take",   difficulty:"idiomatic", separable:true,  sepNote:"Separable. 'Take in the view' or 'take the view in'. With 'deceive': 'he took me in'.", examples:["There was so much to take in at the museum.", "Don't be taken in by his charm."] },
+  { verb:"take after",    meaning:"to resemble a family member",              base:"take",   difficulty:"idiomatic", separable:false, sepNote:"Inseparable. 'She takes after her dad', never 'she takes her dad after'.",         examples:["You really take after your mother.", "He takes after his grandfather in personality."] },
+
+  { verb:"put off",       meaning:"to postpone",                              base:"put",    difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Put off the meeting' or 'put the meeting off' or 'put it off'.",     examples:["Stop putting off your homework.", "The game was put off due to rain."] },
+  { verb:"put up with",   meaning:"to tolerate",                              base:"put",    difficulty:"idiomatic", separable:null,  sepNote:"3-part verb — always inseparable. Object always at the end.",                      examples:["I can't put up with this noise anymore.", "She puts up with a lot from her boss."] },
+  { verb:"put on",        meaning:"to wear / to switch on",                   base:"put",    difficulty:"obvious",   separable:true,  sepNote:"Separable. 'Put on your coat' = 'Put your coat on'. With pronoun: 'put it on'.",  examples:["Put on a jacket — it's cold outside.", "She put on some music while cooking."] },
+  { verb:"put away",      meaning:"to store something in its place",          base:"put",    difficulty:"obvious",   separable:true,  sepNote:"Separable. 'Put away your phone' = 'Put your phone away'.",                       examples:["Put away your toys when you're done.", "She put the leftovers away in the fridge."] },
+  { verb:"put down",      meaning:"to set something down / to belittle",      base:"put",    difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Put down the book' = 'Put the book down' = 'Put it down'.",           examples:["Put your phone down during dinner.", "He always puts her down in front of others."] },
+  { verb:"put out",       meaning:"to extinguish / to inconvenience",         base:"put",    difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Put out the fire' = 'Put the fire out'.",                             examples:["Firefighters put out the blaze quickly.", "I hope it's not putting you out to host us."] },
+  { verb:"put forward",   meaning:"to propose an idea",                       base:"put",    difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Put forward a plan' or 'put a plan forward'.",                        examples:["She put forward a new proposal.", "Several ideas were put forward in the meeting."] },
+
+  { verb:"give up",       meaning:"to quit / to stop trying",                 base:"give",   difficulty:"idiomatic", separable:true,  sepNote:"Separable when it has an object. 'Give up smoking' or 'give it up'. No object: 'don't give up'.", examples:["He gave up smoking last year.", "Never give up on your dreams."] },
+  { verb:"give in",       meaning:"to yield / to surrender",                  base:"give",   difficulty:"idiomatic", separable:false, sepNote:"Inseparable. Usually used without an object. 'Give in to pressure', object follows particle.", examples:["She finally gave in and agreed.", "Don't give in to peer pressure."] },
+  { verb:"give out",      meaning:"to distribute / to run out of energy",     base:"give",   difficulty:"moderate",  separable:true,  sepNote:"Separable when distributing. 'Give out flyers' = 'give flyers out'. Intransitive for 'run out': 'my legs gave out'.", examples:["They gave out free samples at the store.", "My phone battery gave out during the trip."] },
+  { verb:"give away",     meaning:"to give for free / to reveal a secret",    base:"give",   difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Give away the secret' = 'give the secret away' = 'give it away'.",  examples:["Don't give away the ending of the movie.", "The store is giving away free coffee today."] },
+  { verb:"give back",     meaning:"to return something",                      base:"give",   difficulty:"obvious",   separable:true,  sepNote:"Separable. 'Give back the book' = 'give the book back' = 'give it back'.",       examples:["Give me back my pen!", "He gave back everything he borrowed."] },
+
+  { verb:"come up with",  meaning:"to think of an idea",                      base:"come",   difficulty:"idiomatic", separable:null,  sepNote:"3-part verb — always inseparable. 'Come up with a plan', never split.",          examples:["She came up with a brilliant solution.", "Can you come up with a better excuse?"] },
+  { verb:"come across",   meaning:"to find by chance / to seem a certain way",base:"come",   difficulty:"idiomatic", separable:false, sepNote:"Inseparable. 'Come across an article' or 'come across as confident'.",          examples:["I came across this old photo while cleaning.", "He comes across as shy at first."] },
+  { verb:"come out",      meaning:"to be released / to come out as gay",      base:"come",   difficulty:"moderate",  separable:false, sepNote:"Inseparable and usually intransitive. No object needed.",                         examples:["The new album comes out next Friday.", "She came out to her family last year."] },
+  { verb:"come back",     meaning:"to return",                                base:"come",   difficulty:"obvious",   separable:false, sepNote:"Inseparable and intransitive. No object.",                                         examples:["Come back soon!", "He came back from his trip exhausted."] },
+  { verb:"come up",       meaning:"to arise (a topic)",                       base:"come",   difficulty:"moderate",  separable:false, sepNote:"Inseparable and intransitive. Usually used for topics or things that appear.",    examples:["Your name came up in the meeting.", "Something came up and I can't make it."] },
+  { verb:"come down with",meaning:"to get sick with something",               base:"come",   difficulty:"idiomatic", separable:null,  sepNote:"3-part verb — always inseparable. Object always at the end.",                      examples:["I came down with a cold last week.", "She came down with the flu right before finals."] },
+  { verb:"come around",   meaning:"to change one's mind / to visit",          base:"come",   difficulty:"moderate",  separable:false, sepNote:"Inseparable. 'Come around to an idea' or 'come around to someone's place'.",    examples:["He eventually came around to my point of view.", "Come around for dinner sometime!"] },
+
+  { verb:"go on",         meaning:"to continue / to happen",                  base:"go",     difficulty:"moderate",  separable:false, sepNote:"Inseparable. Often used without an object: 'what's going on?'",                  examples:["What's going on in there?", "Go on — tell me what happened."] },
+  { verb:"go out",        meaning:"to go out socially",                       base:"go",     difficulty:"obvious",   separable:false, sepNote:"Inseparable and intransitive. No object.",                                         examples:["Do you want to go out tonight?", "They've been going out for two years."] },
+  { verb:"go through",    meaning:"to experience something difficult / to review", base:"go", difficulty:"moderate", separable:false, sepNote:"Inseparable. 'Go through a tough time' or 'go through the report'.",            examples:["She went through a lot after the accident.", "Let's go through the plan one more time."] },
+  { verb:"go over",       meaning:"to review",                                base:"go",     difficulty:"moderate",  separable:false, sepNote:"Inseparable. 'Go over your notes', object follows particle.",                    examples:["Let's go over the details before the meeting.", "Can you go over my essay?"] },
+  { verb:"go ahead",      meaning:"to proceed",                               base:"go",     difficulty:"obvious",   separable:false, sepNote:"Inseparable and intransitive. Often used as a phrase: 'go ahead!'",              examples:["Go ahead — we'll catch up later.", "The project was given the green light to go ahead."] },
+  { verb:"go off",        meaning:"to explode / to sound (alarm) / to go bad (food)", base:"go", difficulty:"idiomatic", separable:false, sepNote:"Inseparable and intransitive. Subject is the thing that goes off.",          examples:["My alarm went off at 6am.", "The milk has gone off — don't drink it."] },
+  { verb:"go along with", meaning:"to agree / to go with the flow",           base:"go",     difficulty:"moderate",  separable:null,  sepNote:"3-part verb — always inseparable. 'Go along with the plan', never split.",      examples:["I'll go along with whatever you decide.", "He went along with the group even though he disagreed."] },
+
+  { verb:"turn on",       meaning:"to switch on",                             base:"turn",   difficulty:"obvious",   separable:true,  sepNote:"Separable. 'Turn on the light' = 'Turn the light on'. Pronoun must go in middle.", examples:["Can you turn on the TV?", "Turn it on — the game is starting."] },
+  { verb:"turn off",      meaning:"to switch off",                            base:"turn",   difficulty:"obvious",   separable:true,  sepNote:"Separable. 'Turn off the music' = 'Turn the music off' = 'Turn it off'.",       examples:["Please turn off your phone during the movie.", "Don't forget to turn the lights off."] },
+  { verb:"turn up",       meaning:"to show up / to increase volume",          base:"turn",   difficulty:"moderate",  separable:true,  sepNote:"Separable when adjusting volume. 'Turn up the music' = 'turn it up'. Intransitive for 'show up': 'he turned up late'.", examples:["Turn up the volume — I can't hear.", "She turned up an hour late without warning."] },
+  { verb:"turn down",     meaning:"to reject / to lower volume",              base:"turn",   difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Turn down the offer' = 'turn the offer down'. Volume: 'turn it down'.", examples:["He was turned down for the job.", "Turn down the music — it's too loud."] },
+  { verb:"turn into",     meaning:"to become",                                base:"turn",   difficulty:"moderate",  separable:false, sepNote:"Inseparable. 'Turn into something', object follows particle.",                    examples:["The caterpillar turned into a butterfly.", "This small project turned into something huge."] },
+  { verb:"turn out",      meaning:"to end up being",                          base:"turn",   difficulty:"idiomatic", separable:false, sepNote:"Inseparable. Often used as 'it turns out that...' or 'things turned out well'.", examples:["It turned out she was right all along.", "The party turned out to be a great success."] },
+  { verb:"turn around",   meaning:"to reverse direction / to reverse a situation", base:"turn", difficulty:"moderate", separable:true, sepNote:"Separable when you reverse something. 'Turn the business around' = 'turn it around'. Intransitive: 'turn around and look'.", examples:["Turn around — you're going the wrong way.", "The new CEO managed to turn the company around."] },
+
+  { verb:"run out of",    meaning:"to have no more of something",             base:"run",    difficulty:"moderate",  separable:null,  sepNote:"3-part verb — always inseparable. 'Run out of time', never split.",             examples:["We ran out of milk this morning.", "I always run out of ideas at the worst moment."] },
+  { verb:"run into",      meaning:"to meet someone by chance",                base:"run",    difficulty:"moderate",  separable:false, sepNote:"Inseparable. 'Run into an old friend', object always follows particle.",        examples:["I ran into my old teacher at the supermarket.", "We ran into some problems with the system."] },
+  { verb:"run away",      meaning:"to flee",                                  base:"run",    difficulty:"obvious",   separable:false, sepNote:"Inseparable and intransitive. Often followed by 'from': 'run away from home'.", examples:["The dog ran away during the fireworks.", "You can't run away from your problems."] },
+  { verb:"run over",      meaning:"to hit with a vehicle / to go over quickly",base:"run",   difficulty:"moderate",  separable:true,  sepNote:"Separable when reviewing: 'run over the plan' = 'run the plan over'. Hitting someone: 'run over a pedestrian'.", examples:["Let me quickly run over the main points.", "Be careful — don't run over the cat!"] },
+  { verb:"run through",   meaning:"to rehearse / to go through quickly",      base:"run",    difficulty:"moderate",  separable:false, sepNote:"Inseparable. 'Run through the script', object follows particle.",               examples:["Let's run through the presentation one more time.", "She ran through the checklist before takeoff."] },
+
+  { verb:"look up",       meaning:"to search for information",                base:"look",   difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Look up the word' = 'look the word up' = 'look it up'.",           examples:["Look up the word in the dictionary.", "If you don't know, just look it up."] },
+  { verb:"look after",    meaning:"to take care of someone",                  base:"look",   difficulty:"moderate",  separable:false, sepNote:"Inseparable. 'Look after the kids', object always follows.",                    examples:["Can you look after my dog this weekend?", "She looked after her father in his old age."] },
+  { verb:"look into",     meaning:"to investigate",                           base:"look",   difficulty:"moderate",  separable:false, sepNote:"Inseparable. 'Look into the issue', object always follows.",                    examples:["The police are looking into the case.", "I'll look into the problem and get back to you."] },
+  { verb:"look forward to",meaning:"to anticipate with excitement",           base:"look",   difficulty:"idiomatic", separable:null,  sepNote:"3-part verb — always inseparable. Followed by a noun or gerund (-ing).",        examples:["I'm looking forward to the holidays.", "She's looking forward to meeting you."] },
+  { verb:"look out",      meaning:"to be careful",                            base:"look",   difficulty:"moderate",  separable:false, sepNote:"Inseparable. Often used as a warning: 'look out!' or 'look out for dangers'.", examples:["Look out! There's a car coming!", "Look out for pickpockets in the market."] },
+  { verb:"look down on",  meaning:"to despise / to feel superior to",         base:"look",   difficulty:"idiomatic", separable:null,  sepNote:"3-part verb — always inseparable. Object always at the end.",                   examples:["He looks down on anyone who didn't go to university.", "Don't look down on people for their choices."] },
+  { verb:"look up to",    meaning:"to admire someone",                        base:"look",   difficulty:"idiomatic", separable:null,  sepNote:"3-part verb — always inseparable. Object always at the end.",                   examples:["I've always looked up to my older brother.", "Kids look up to athletes as role models."] },
+
+  { verb:"make up",       meaning:"to invent / to reconcile / to apply makeup", base:"make", difficulty:"idiomatic", separable:true, sepNote:"Separable. 'Make up a story' = 'make a story up'. 'Make up' (reconcile) is intransitive.", examples:["He made up an excuse for being late.", "They argued but made up the next day."] },
+  { verb:"make out",      meaning:"to understand / to make out (kiss)",       base:"make",   difficulty:"idiomatic", separable:true,  sepNote:"Separable when understanding. 'Make out what he said' = 'make it out'. 'Make out' (kiss) is intransitive.", examples:["I couldn't make out what she was saying.", "Can you make out the writing on that sign?"] },
+  { verb:"make up for",   meaning:"to compensate for something",              base:"make",   difficulty:"idiomatic", separable:null,  sepNote:"3-part verb — always inseparable. 'Make up for the mistake', never split.",    examples:["He bought her flowers to make up for being late.", "Nothing can make up for the lost time."] },
+  { verb:"make do with",  meaning:"to manage with what you have",             base:"make",   difficulty:"idiomatic", separable:null,  sepNote:"3-part verb — always inseparable. 'Make do with what you have'.",              examples:["We'll have to make do with what's in the fridge.", "She made do with a broken umbrella."] },
+  { verb:"make off with", meaning:"to flee with stolen goods",                base:"make",   difficulty:"idiomatic", separable:null,  sepNote:"3-part verb — always inseparable. 'Make off with the money', never split.",   examples:["The burglar made off with the jewelry.", "Someone made off with my bike outside the store."] },
+
+  { verb:"break down",    meaning:"to stop working / to cry / to collapse",   base:"break",  difficulty:"moderate",  separable:true,  sepNote:"Separable when meaning to disassemble or analyse: 'break down the data' = 'break it down'. Intransitive for machine/emotion: 'the car broke down'.", examples:["My car broke down on the highway.", "Let me break down the costs for you."] },
+  { verb:"break up",      meaning:"to end a relationship / to disperse",      base:"break",  difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Break up the fight' = 'break the fight up'. Intransitive for relationships: 'they broke up'.", examples:["They broke up after three years together.", "Police broke up the protest."] },
+  { verb:"break out",     meaning:"to escape / to erupt (war, disease)",      base:"break",  difficulty:"moderate",  separable:false, sepNote:"Inseparable and usually intransitive. Subject breaks out.",                    examples:["A fire broke out on the third floor.", "He broke out in a cold sweat."] },
+  { verb:"break in",      meaning:"to enter by force / to interrupt",         base:"break",  difficulty:"moderate",  separable:true,  sepNote:"Separable when breaking in shoes/new items: 'break in the shoes' = 'break the shoes in'. 'Break in' (enter by force) is intransitive.", examples:["Someone broke in through the back window.", "I need to break in these new boots."] },
+  { verb:"break through", meaning:"to achieve a breakthrough",                base:"break",  difficulty:"moderate",  separable:false, sepNote:"Inseparable. 'Break through a barrier', object follows particle.",             examples:["Scientists finally broke through with a new treatment.", "She broke through the glass ceiling in her field."] },
+
+  { verb:"call off",      meaning:"to cancel",                                base:"call",   difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Call off the meeting' = 'call the meeting off' = 'call it off'.",  examples:["They called off the wedding at the last minute.", "The match was called off due to bad weather."] },
+  { verb:"call out",      meaning:"to publicly challenge someone",            base:"call",   difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Call out the politician' = 'call the politician out' = 'call them out'.", examples:["She called out the CEO for his dishonesty.", "He got called out on social media."] },
+  { verb:"call back",     meaning:"to return a phone call",                   base:"call",   difficulty:"obvious",   separable:true,  sepNote:"Separable. 'Call back the client' = 'call the client back' = 'call them back'.", examples:["I missed your call — I'll call you back later.", "She called back within five minutes."] },
+  { verb:"call up",       meaning:"to phone someone",                         base:"call",   difficulty:"obvious",   separable:true,  sepNote:"Separable. 'Call up your friend' = 'call your friend up' = 'call them up'.",   examples:["Call me up when you get home.", "He called up his old colleague out of the blue."] },
+
+  { verb:"bring up",      meaning:"to mention a topic / to raise a child",    base:"bring",  difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Bring up the issue' = 'bring the issue up'. 'Bring up children' = 'bring children up'.", examples:["Don't bring up politics at dinner.", "She was brought up by her grandparents."] },
+  { verb:"bring out",     meaning:"to reveal / to highlight a quality",       base:"bring",  difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Bring out his confidence' = 'bring his confidence out'.",          examples:["This challenge will bring out the best in you.", "The blue shirt brings out your eyes."] },
+  { verb:"bring about",   meaning:"to cause something",                       base:"bring",  difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Bring about change' = 'bring change about'.",                      examples:["The new policy brought about major reforms.", "What brought about this sudden change?"] },
+  { verb:"bring back",    meaning:"to return / to evoke memories",            base:"bring",  difficulty:"obvious",   separable:true,  sepNote:"Separable. 'Bring back memories' = 'bring memories back' = 'bring them back'.", examples:["That song brings back so many memories.", "Can you bring back some milk from the store?"] },
+
+  { verb:"fall out",      meaning:"to have a falling out with someone",       base:"fall",   difficulty:"idiomatic", separable:false, sepNote:"Inseparable. 'Fall out with someone', object follows particle. Also intransitive: 'they fell out'.", examples:["She fell out with her best friend over money.", "My hair started falling out from the stress."] },
+  { verb:"fall apart",    meaning:"to fall to pieces / to collapse",          base:"fall",   difficulty:"moderate",  separable:false, sepNote:"Inseparable and intransitive. Subject falls apart.",                            examples:["Their relationship fell apart after the move.", "The old book fell apart when I opened it."] },
+  { verb:"fall behind",   meaning:"to lag behind / to get delayed",           base:"fall",   difficulty:"moderate",  separable:false, sepNote:"Inseparable. 'Fall behind on rent' or 'fall behind the others'.",              examples:["Don't fall behind on your payments.", "He fell behind in class after missing a week."] },
+  { verb:"fall through",  meaning:"for a plan to fail",                       base:"fall",   difficulty:"idiomatic", separable:false, sepNote:"Inseparable and intransitive. The plan or deal falls through.",                examples:["The deal fell through at the last minute.", "Our vacation plans fell through when he got sick."] },
+  { verb:"fall for",      meaning:"to fall in love / to be tricked",          base:"fall",   difficulty:"idiomatic", separable:false, sepNote:"Inseparable. 'Fall for someone' or 'fall for a scam', object follows.",       examples:["He fell for her the moment they met.", "Don't fall for that old trick."] },
+
+  { verb:"hold on",       meaning:"to wait / to hold tight",                  base:"hold",   difficulty:"obvious",   separable:false, sepNote:"Inseparable. Often used without an object: 'hold on!' or 'hold on to something'.", examples:["Hold on — I'll be right there.", "Hold on to the railing, it's slippery."] },
+  { verb:"hold back",     meaning:"to restrain / to suppress",                base:"hold",   difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Hold back your tears' = 'hold your tears back' = 'hold them back'.", examples:["She held back her tears during the speech.", "Don't let fear hold you back."] },
+  { verb:"hold up",       meaning:"to delay / to rob at gunpoint",            base:"hold",   difficulty:"idiomatic", separable:true,  sepNote:"Separable. 'Hold up the traffic' = 'hold traffic up'. 'Hold someone up' (rob) is also separable.", examples:["Sorry I'm late — I was held up at work.", "The bank was held up by two armed men."] },
+  { verb:"hold out",      meaning:"to resist / to last",                      base:"hold",   difficulty:"moderate",  separable:false, sepNote:"Inseparable. 'Hold out against something', object follows particle.",           examples:["The defenders held out for three days.", "Can the battery hold out until we get home?"] },
+
+  { verb:"pick up",       meaning:"to collect / to learn quickly / to improve", base:"pick", difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Pick up the kids' = 'pick the kids up' = 'pick them up'.",        examples:["Can you pick me up from the airport?", "She picked up Spanish in just a few months."] },
+  { verb:"pick out",      meaning:"to choose / to identify",                  base:"pick",   difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Pick out a dress' = 'pick a dress out' = 'pick it out'.",          examples:["She took forever to pick out an outfit.", "Can you pick out the odd one in this group?"] },
+  { verb:"pick on",       meaning:"to bully / to single someone out",         base:"pick",   difficulty:"idiomatic", separable:false, sepNote:"Inseparable. 'Pick on someone', object follows particle.",                     examples:["Stop picking on your little brother.", "Why is the teacher always picking on me?"] },
+
+  { verb:"set up",        meaning:"to configure / to establish",              base:"set",    difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Set up the meeting' = 'set the meeting up' = 'set it up'.",       examples:["Can you set up a call for tomorrow?", "They set up the company in 2018."] },
+  { verb:"set off",       meaning:"to depart / to trigger / to detonate",     base:"set",    difficulty:"moderate",  separable:true,  sepNote:"Separable when triggering: 'set off the alarm' = 'set it off'. Intransitive for departing: 'we set off at dawn'.", examples:["We set off early to avoid traffic.", "The smoke set off the fire alarm."] },
+  { verb:"set back",      meaning:"to delay / to cost money",                 base:"set",    difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Set back the project' = 'set the project back' = 'set it back'.", examples:["The storm set us back by two weeks.", "That repair set me back $800."] },
+
+  { verb:"work out",      meaning:"to exercise / to resolve / to work",       base:"work",   difficulty:"moderate",  separable:true,  sepNote:"Separable when solving: 'work out a problem' = 'work it out'. Intransitive for exercising or succeeding: 'it worked out'.", examples:["I work out three times a week.", "Don't worry — it'll all work out in the end."] },
+  { verb:"work up",       meaning:"to build up gradually",                    base:"work",   difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Work up an appetite' = 'work an appetite up'. Often used reflexively: 'work yourself up'.", examples:["I worked up the courage to ask her out.", "Don't work yourself up over it."] },
+  { verb:"figure out",    meaning:"to understand / to solve",                 base:"figure", difficulty:"moderate",  separable:true,  sepNote:"Separable. 'Figure out the problem' = 'figure the problem out' = 'figure it out'.", examples:["I can't figure out how this works.", "She figured it out on her own."] },
+  { verb:"end up",        meaning:"to eventually be / to wind up",            base:"end",    difficulty:"moderate",  separable:false, sepNote:"Inseparable. Usually followed by an adjective, place, or gerund (-ing).",        examples:["We ended up staying until midnight.", "If you don't study, you'll end up failing."] },
+  { verb:"show up",       meaning:"to arrive / to appear",                    base:"show",   difficulty:"moderate",  separable:false, sepNote:"Inseparable when meaning 'arrive'. 'Show up late'. Separable when 'expose': 'show someone up' = embarrass.", examples:["He showed up an hour late to the interview.", "She always shows up when you least expect it."] },
+];
+
+// State
+let state = { known: {}, unknown: {} };
+let filters = { base: "all", diff: "all", status: "all" };
+let expanded = {};
+
+function save() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const label = document.getElementById("autosave-label");
+    label.classList.add("show");
+    setTimeout(() => label.classList.remove("show"), 1500);
+  } catch(e) {}
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const data = JSON.parse(raw);
+      state.known   = data.known   || {};
+      state.unknown = data.unknown || {};
+      showToast("✓ Progress loaded");
+    }
+  } catch(e) {}
+}
+
+function showToast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), 2000);
+}
+
+function exportJSON() {
+  const data = { ...state, exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "phrasal-verbs-progress.json"; a.click();
+  URL.revokeObjectURL(url);
+  showToast("✓ File exported");
+}
+
+function importJSON(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      state.known   = data.known   || {};
+      state.unknown = data.unknown || {};
+      save(); render(); showToast("✓ Progress imported");
+    } catch { showToast("✗ Invalid file"); }
+  };
+  reader.readAsText(file); e.target.value = "";
+}
+
+function toggleMark(verb, type, event) {
+  event.stopPropagation();
+  if (type === "known") {
+    state.known[verb]   = !state.known[verb];
+    state.unknown[verb] = false;
+  } else {
+    state.unknown[verb] = !state.unknown[verb];
+    state.known[verb]   = false;
+  }
+  save(); updateStats(); updateCard(verb);
+}
+
+function toggleExpand(verb) {
+  expanded[verb] = !expanded[verb];
+  const card = document.querySelector(`[data-verb="${CSS.escape(verb)}"]`);
+  if (!card) return;
+  const detail = card.querySelector(".card-detail");
+  const btn    = card.querySelector(".expand-btn");
+  detail.classList.toggle("open", expanded[verb]);
+  btn.classList.toggle("open", expanded[verb]);
+}
+
+function updateStats() {
+  const knownCount   = Object.values(state.known).filter(Boolean).length;
+  const unknownCount = Object.values(state.unknown).filter(Boolean).length;
+  document.getElementById("stat-total").textContent   = phrasalVerbs.length;
+  document.getElementById("stat-known").textContent   = knownCount;
+  document.getElementById("stat-unknown").textContent = unknownCount;
+}
+
+function updateCard(verb) {
+  const card = document.querySelector(`[data-verb="${CSS.escape(verb)}"]`);
+  if (!card) return;
+  const isKnown   = !!state.known[verb];
+  const isUnknown = !!state.unknown[verb];
+  card.className = "verb-card" + (isKnown ? " known" : isUnknown ? " unknown" : "");
+  card.querySelector(".check").className = "action-btn check" + (isKnown ? " active" : "");
+  card.querySelector(".cross").className = "action-btn cross" + (isUnknown ? " active" : "");
+}
+
+function buildFilters() {
+  const bases = ["all", ...Array.from(new Set(phrasalVerbs.map(p => p.base)))];
+  const baseEl = document.getElementById("base-filters");
+  baseEl.innerHTML = "";
+  bases.forEach(b => {
+    const chip = document.createElement("button");
+    chip.className = "chip" + (filters.base === b ? " active" : "");
+    chip.textContent = b;
+    chip.onclick = () => { filters.base = b; render(); };
+    baseEl.appendChild(chip);
+  });
+
+  const diffs = [
+    { value: "all", label: "All" },
+    { value: "obvious", label: "Obvious" },
+    { value: "moderate", label: "Moderate" },
+    { value: "idiomatic", label: "Idiomatic" },
+  ];
+  const diffEl = document.getElementById("diff-filters");
+  diffEl.innerHTML = "";
+  diffs.forEach(d => {
+    const chip = document.createElement("button");
+    chip.className = "chip" + (filters.diff === d.value ? " active" : "");
+    chip.textContent = d.label;
+    chip.onclick = () => { filters.diff = d.value; render(); };
+    diffEl.appendChild(chip);
+  });
+
+  const statuses = [
+    { value: "all", label: "All" },
+    { value: "known", label: "Known" },
+    { value: "to learn", label: "To learn" },
+    { value: "unmarked", label: "Unmarked" },
+  ];
+  const statusEl = document.getElementById("status-filters");
+  statusEl.innerHTML = "";
+  statuses.forEach(s => {
+    const chip = document.createElement("button");
+    chip.className = "chip" + (filters.status === s.value ? " active" : "");
+    chip.textContent = s.label;
+    chip.onclick = () => { filters.status = s.value; render(); };
+    statusEl.appendChild(chip);
+  });
+}
+
+function getFiltered() {
+  return phrasalVerbs.filter(p => {
+    const baseMatch   = filters.base === "all" || p.base === filters.base;
+    const diffMatch   = filters.diff === "all" || p.difficulty === filters.diff;
+    const statusMatch =
+      filters.status === "all" ||
+      (filters.status === "known"    && state.known[p.verb]) ||
+      (filters.status === "to learn" && state.unknown[p.verb]) ||
+      (filters.status === "unmarked" && !state.known[p.verb] && !state.unknown[p.verb]);
+    return baseMatch && diffMatch && statusMatch;
+  });
+}
+
+function sepBadgeHTML(p) {
+  if (p.separable === null)  return `<span class="sep-badge na">Inseparable (3-part)</span>`;
+  if (p.separable === true)  return `<span class="sep-badge separable">Separable</span>`;
+  if (p.separable === false) return `<span class="sep-badge inseparable">Inseparable</span>`;
+  return "";
+}
+
+function render() {
+  buildFilters();
+  updateStats();
+  const filtered = getFiltered();
+  const list = document.getElementById("verb-list");
+  list.innerHTML = "";
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<p class="empty">No verbs match these filters.</p>';
+    return;
+  }
+
+  filtered.forEach(p => {
+    const isKnown   = !!state.known[p.verb];
+    const isUnknown = !!state.unknown[p.verb];
+    const isOpen    = !!expanded[p.verb];
+    const verbKey   = p.verb.replace(/'/g, "\\'");
+
+    const card = document.createElement("div");
+    card.className = "verb-card" + (isKnown ? " known" : isUnknown ? " unknown" : "");
+    card.dataset.verb = p.verb;
+
+    card.innerHTML = `
+      <div class="card-top" onclick="toggleExpand('${verbKey}')">
+        <div class="verb-info">
+          <div class="verb-name">
+            ${p.verb}
+            <span class="badge ${p.difficulty}">${p.difficulty.charAt(0).toUpperCase() + p.difficulty.slice(1)}</span>
+          </div>
+          <div class="verb-meaning">${p.meaning}</div>
+        </div>
+        <div class="card-right">
+          <button class="action-btn check${isKnown ? ' active' : ''}" onclick="toggleMark('${verbKey}', 'known', event)">✓</button>
+          <button class="action-btn cross${isUnknown ? ' active' : ''}" onclick="toggleMark('${verbKey}', 'unknown', event)">✗</button>
+          <button class="expand-btn${isOpen ? ' open' : ''}">▾</button>
+        </div>
+      </div>
+      <div class="card-detail${isOpen ? ' open' : ''}">
+        <div class="detail-inner">
+          <div class="sep-row">
+            ${sepBadgeHTML(p)}
+            <span class="sep-note">${p.sepNote}</span>
+          </div>
+          <div>
+            <div class="examples-label">Examples</div>
+            ${p.examples.map(ex => `<div class="example">${ex}</div>`).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+
+    list.appendChild(card);
+  });
+}
+
+load();
+render();
+</script>
+</body>
+</html>
