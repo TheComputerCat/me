@@ -1,4 +1,4 @@
-# juansanchezo.co
+# jusanchez.dev
 
 Personal website built with [Zola](https://www.getzola.org/). Available in Spanish (default), English, and French.
 

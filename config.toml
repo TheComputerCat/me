@@ -1,4 +1,4 @@
-base_url = "https://juansanchezo.co"
+base_url = "https://jusanchez.dev"
 title = "Juan Sánchez"
 description = "Programador y estadístico."
 default_language = "es"
@@ -19,7 +19,7 @@ start_year = 2026
 github = "https://github.com/TheComputerCat"
 linkedin = "https://www.linkedin.com/in/juan-sanchezo"
 email_unal = "jusanchez@unal.edu.co"
-email_contact = "contact@juansanchezo.co"
+email_contact = "contact@jusanchez.dev"
 pgp_unal = "B73E 1BFE D341 02CF CA52 A93E E6FD 6A12 EC13 B48B"
 pgp_contact = "6BB8 B92F 457B 3717 5E8A B995 DE3C C4C3 955F 8C80"
 
